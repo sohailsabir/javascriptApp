@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Infinite Scroll App</title>
+  <link rel="stylesheet" href="{% static 'post/css/styles.css' %}">
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+  let page = 1;
+  let isLoading = false;
+
+  const loadMorePosts = () => {
+    if (isLoading) return;
+    isLoading = true;
+    
+    fetch(`/load-more-posts/?page=${page}`)
+      .then(response => response.json())
+      .then(data => {
+        const postsContainer = document.getElementById('posts-container');
+        data.posts.forEach(post => {
+          const postElement = document.createElement('div');
+          postElement.classList.add('post');
+          postElement.setAttribute('data-post-id', post.id);
+          postElement.innerHTML = `
+            <h3>${post.title}</h3>
+            <p>${post.content}</p>
+            <p>${post.date_posted}</p>
+            <button class="hide-post-btn">Hide</button>
+          `;
+          postsContainer.appendChild(postElement);
+        });
+        
+        isLoading = false;
+        if (data.has_next) {
+          page += 1;
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        isLoading = false;
+      });
+  };
+
+  const hidePost = (postId) => {
+    const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+    if (postElement) {
+      postElement.classList.add('hidden');
+      setTimeout(() => {
+        postElement.style.display = 'none';
+      }, 500);
+    }
+  };
+
+  const hidePostButtons = document.querySelectorAll('.hide-post-btn');
+  hidePostButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const postId = button.parentNode.getAttribute('data-post-id');
+      hidePost(postId);
+    });
+  });
+
+  const newPostForm = document.getElementById('new-post-form');
+  newPostForm.addEventListener('submit', event => {
+    event.preventDefault();
+    const formData = new FormData(newPostForm);
+    const postTitle = formData.get('title');
+    const postContent = formData.get('content');
+    createPost(postTitle, postContent);
+    newPostForm.reset();
+  });
+
+  const createPost = (title, content) => {
+    const postElement = document.createElement('div');
+    postElement.classList.add('post', 'new-post');
+    postElement.innerHTML = `
+      <h3>${title}</h3>
+      <p>${content}</p>
+      <p>${new Date().toLocaleString()}</p>
+      <button class="hide-post-btn">Hide</button>
+    `;
+    const postsContainer = document.getElementById('posts-container');
+    postsContainer.insertBefore(postElement, postsContainer.firstChild);
+  };
+
+  window.addEventListener('scroll', () => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+      loadMorePosts();
+    }
+  });
+
+  loadMorePosts();
+});
+
+
+
+  </script>
+</head>
+<body>
+  <div class="container">
+    <h1>Infinite Scroll App</h1>
+    {% block content %}
+    {% endblock %}
+  </div>
+</body>
+</html>

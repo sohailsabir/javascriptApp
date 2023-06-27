@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script>
+        window.onpopstate=function(event){
+            console.log(event.state.section);
+            showSection(event.state.section);
+        }
+        function showSection(section){
+            fetch(`/singlepage/section/${section}`).
+            then(response =>response.text()).
+            then(text=>{
+                console.log(text)
+                document.querySelector('#section').innerHTML=text;
+            });
+        }
+        document.addEventListener('DOMContentLoaded',function(){
+            document.querySelectorAll('button').forEach(button=>{
+                button.onclick=function(){
+                    const section=this.dataset.content;
+                    history.pushState({section: section}, "", `section${section}`)
+                    showSection(this.dataset.content);
+                }
+            });
+        });
+    </script>
+
+</head>
+<body>
+    <button data-content="1">Section 1</button>
+    <button data-content="2">Section 2</button>
+    <button data-content="3">Section 3</button>
+
+    <div id="section"></div>
+</body>
+</html>

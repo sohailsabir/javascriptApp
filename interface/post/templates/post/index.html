@@ -1,0 +1,18 @@
+{% extends 'post/base.html' %}
+
+{% block content %}
+  <div id="posts-container">
+    {% for post in page_obj %}
+      <div class="post">
+        <h3>{{ post.title }}</h3>
+        <p>{{ post.content }}</p>
+        <p>{{ post.date_posted }}</p>
+      </div>
+    {% endfor %}
+  </div>
+  <form id="new-post-form">
+    <input type="text" name="title" placeholder="Post Title">
+    <textarea name="content" placeholder="Post Content"></textarea>
+    <button type="submit">Create Post</button>
+  </form>
+{% endblock %}
